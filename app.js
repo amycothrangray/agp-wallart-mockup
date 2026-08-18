@@ -7,6 +7,8 @@ const $ = id => document.getElementById(id);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const money = v => '$' + Math.round(v).toLocaleString('en-US');
 const FLOAT_ADD = (CATALOG.floating && CATALOG.floating.frame_add_in) || 0.75;
+const STORE_URL = 'https://amygrayphotography.sproutstudio.com/pricing/price-guide';
+const storeLink = product => STORE_URL + '#:~:text=' + encodeURIComponent(CATALOG[product].name);
 
 function fmtIn(v) {
   const w = Math.round(v * 100) / 100;
@@ -434,6 +436,7 @@ function renderInspector() {
     const e = sizeEntry(p.product, s);
     return `<option value="${s}"${s === p.size ? ' selected' : ''}>${s.replace('x', '×')}″${e.print ? ` (${e.print.replace('x', '×')}″ print)` : ''} — ${money(e.price)}</option>`;
   }).join('');
+  $('pStore').href = storeLink(p.product);
   $('pFocusX').value = Math.round(p.focus[0] * 100);
   $('pFocusY').value = Math.round(p.focus[1] * 100);
   const [w, h] = pieceDims(p);
@@ -462,7 +465,8 @@ function renderPricing() {
     const ph = state.photos[p.photoId];
     const row = document.createElement('div');
     row.className = 'price-row price-item';
-    row.innerHTML = `<span>${pieceLabel(p)}<br><span class="sub">${ph ? ph.name : ''}</span></span><span>${money(e.price)}</span>`;
+    row.innerHTML = `<span><a class="store-link" href="${storeLink(p.product)}" target="_blank" rel="noopener"
+      title="See ${CATALOG[p.product].name} in the store">${pieceLabel(p)}</a><br><span class="sub">${ph ? ph.name : ''}</span></span><span>${money(e.price)}</span>`;
     list.appendChild(row);
   }
   const c = state.coupon / 100;
