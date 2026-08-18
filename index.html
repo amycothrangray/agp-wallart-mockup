@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
 
@@ -22,7 +22,8 @@
     <button id="btnSample" class="ghost" title="Load a sample design with placeholder art">Sample</button>
     <button id="btnLoad" class="ghost" title="Open a saved .wallart.json design">Open</button>
     <button id="btnSave" class="ghost" title="Save this design (photos included) as a file">Save</button>
-    <button id="btnExport" class="primary" title="Download a to-scale PNG mock-up">Export PNG</button>
+    <button id="btnExport" class="ghost" title="Download a to-scale PNG mock-up">Export PNG</button>
+    <button id="btnSend" class="primary send" title="Email your design to Amy">Send to Amy</button>
   </div>
 </header>
 
@@ -152,6 +153,24 @@
 
 <div id="dropHint">Drop photos to add them</div>
 
+<div id="welcome" class="hidden">
+  <div id="welcomeCard">
+    <div class="brand" style="margin-bottom:6px">
+      <span class="brand-name">Amy Gray</span>
+      <span class="brand-sub">wall art mock-up</span>
+    </div>
+    <p class="wel-lead">Design the wall art for your own home, to scale, with your session photos.</p>
+    <ol>
+      <li><b>Add your favorite photos</b> &mdash; the panel on the left suggests good ones to include.</li>
+      <li><b>Pick a wall</b> &mdash; or snap a straight-on photo of your actual wall with a credit card or dollar bill taped to it, and load it with <i>Use photo&hellip;</i></li>
+      <li><b>Start from a template</b> &mdash; then drag, swap and resize until it feels right.</li>
+      <li><b>Send to Amy</b> &mdash; your design and photos go to her by email, and she takes it from there.</li>
+    </ol>
+    <p class="hint">Your photos stay on your device until you choose to send your design.</p>
+    <button id="welcomeGo" class="primary">Start designing</button>
+  </div>
+</div>
+
 <div id="tplModal" class="hidden">
   <div id="tplSheet">
     <div class="tpl-head">
@@ -163,7 +182,7 @@
   </div>
 </div>
 
-<script src="data.js"></script>
-<script src="app.js"></script>
+<script src="data.js?v=3"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>

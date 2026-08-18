@@ -7,6 +7,13 @@ Runs entirely in the browser — **client photos never leave your computer**.
 ## Use it
 
 Open `index.html` in any browser (or the GitHub Pages link on this repo).
+**Clients can use the link on their own** — a welcome card walks them
+through it, and **Send to Amy** emails the finished design (photos
+embedded) to amy@amygray.net via their own mail app: on phones/Macs the
+share sheet attaches the design file directly; elsewhere it downloads the
+file and opens a pre-addressed email telling them to attach it. Open the
+received `.wallart.json` with the *Open* button to pick up where they
+left off.
 
 1. **Add photos** — drag image files in, or click *+ Add photos*.
 2. **Pick a wall** — the four standard presets (tall/stairwell, sofa, bed,

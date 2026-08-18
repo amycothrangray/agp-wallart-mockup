@@ -222,6 +222,26 @@ main { flex: 1; display: flex; min-height: 0; }
 .coupon-row input { width: 70px; }
 .total-row { font-family: var(--serif); font-size: 17px; padding-top: 8px; }
 
+button.send { background: var(--rose); border-color: var(--rose); }
+button.send:hover { background: #b56a75; }
+
+/* ---------- welcome ---------- */
+#welcome {
+  position: fixed; inset: 0; z-index: 95;
+  background: rgba(74, 72, 68, .4);
+  display: flex; align-items: center; justify-content: center;
+}
+#welcomeCard {
+  background: var(--paper); border-radius: 10px; box-shadow: 0 24px 64px rgba(40,38,35,.4);
+  width: min(480px, calc(100vw - 40px)); padding: 26px 28px;
+}
+.wel-lead { font-family: var(--serif); font-size: 17px; margin: 10px 0 14px; }
+#welcomeCard ol { padding-left: 20px; margin-bottom: 14px; }
+#welcomeCard li { margin: 8px 0; font-size: 13.5px; line-height: 1.45; color: var(--ink); }
+#welcomeCard li b { font-weight: 500; }
+#welcomeCard .hint { margin-bottom: 16px; }
+#welcomeGo { width: 100%; padding: 10px; }
+
 /* ---------- templates modal ---------- */
 #tplModal {
   position: fixed; inset: 0; z-index: 90;

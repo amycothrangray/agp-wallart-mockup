@@ -883,6 +883,61 @@ function openDesign(file) {
   rd.readAsText(file);
 }
 
+/* ---------------- send to Amy ---------------- */
+const AMY_EMAIL = 'amy@amygray.net';
+
+function designSummaryText() {
+  const spec = wallSpec();
+  const lines = [
+    `Design from: ${state.client || '(no name given)'}`,
+    `Wall: ${spec.name || 'wall'} — ${Math.round(spec.w)}" wide x ${Math.round(spec.h)}" tall`,
+    '',
+  ];
+  let sub = 0;
+  state.pieces.forEach((p, i) => {
+    const e = sizeEntry(p.product, p.size);
+    sub += e.price;
+    const ph = state.photos[p.photoId];
+    lines.push(`${i + 1}. ${pieceLabel(p)} — ${money(e.price)}${ph ? ` — photo: ${ph.name}` : ''}`);
+  });
+  lines.push('', `Total: ${money(sub * (1 - state.coupon / 100))}${state.coupon ? ` (after ${state.coupon}% coupon)` : ''}`);
+  return lines.join('\n');
+}
+
+function openMailto(url) { location.href = url; }
+
+async function sendToAmy() {
+  if (!state.pieces.length) { alert('Put at least one piece on the wall first — try the Templates button!'); return; }
+  if (!state.client) {
+    const n = window.prompt('Your family name (so Amy knows who this is from):', '');
+    if (n) { state.client = n.trim(); $('clientName').value = state.client; }
+  }
+  const fname = ((state.client || 'design').replace(/\s+/g, '-') + '.wallart.json').toLowerCase();
+  const json = JSON.stringify(serialize(true));
+  const subject = `Wall art design — ${state.client || 'new client'}`;
+  const body = designSummaryText();
+  const file = new File([json], fname, { type: 'application/json' });
+
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: subject, text: body + `\n\nPlease send to ${AMY_EMAIL}` });
+      setStatus(`Thank you! If you picked Mail, address it to ${AMY_EMAIL} and hit send.`);
+      return;
+    } catch (err) {
+      if (err.name === 'AbortError') return;   // user closed the share sheet
+    }
+  }
+  // fallback: download the design, then open a pre-addressed email
+  const a = document.createElement('a');
+  a.download = fname;
+  a.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  openMailto(`mailto:${AMY_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(
+    body + `\n\nIMPORTANT: the file "${fname}" just downloaded to this device — attach it to this email before sending, so Amy gets the design and photos.`)}`);
+  setStatus(`Design saved as ${fname} — attach it to the email that just opened, then send.`);
+}
+
 /* ---------------- sample design ---------------- */
 function placeholderPhoto(seed, w, h) {
   const c = document.createElement('canvas'); c.width = w; c.height = h;
@@ -1161,6 +1216,11 @@ $('coupon').addEventListener('change', e => { state.coupon = clamp(+e.target.val
 $('clientName').addEventListener('input', e => { state.client = e.target.value; });
 
 $('btnExport').addEventListener('click', exportPNG);
+$('btnSend').addEventListener('click', sendToAmy);
+$('welcomeGo').addEventListener('click', () => {
+  $('welcome').classList.add('hidden');
+  try { localStorage.setItem('agpWelcomeSeen', '1'); } catch (e) {}
+});
 $('btnSave').addEventListener('click', saveDesign);
 $('btnSample').addEventListener('click', loadSample);
 $('btnLoad').addEventListener('click', () => {
@@ -1196,3 +1256,6 @@ window.addEventListener('resize', renderAll);
 /* ---------------- boot ---------------- */
 syncControls();
 renderAll();
+try {
+  if (!localStorage.getItem('agpWelcomeSeen')) $('welcome').classList.remove('hidden');
+} catch (e) {}
