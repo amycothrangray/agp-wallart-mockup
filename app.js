@@ -1210,6 +1210,43 @@ function templatePrice(t) {
   return placed.reduce((s, q) => s + sizeEntry(q.product, q.size).price, 0);
 }
 
+/* ---- auto-fit: shrink a template's sizes until the group fits the wall ---- */
+function nextSmallerSize(product, size) {
+  const [w, h] = parseSize(size);
+  const area = w * h, asp = w / h;
+  const square = Math.abs(Math.log(asp)) < 0.05;
+  const pick = tol => {
+    let best = null, bestArea = -1;
+    for (const s of sizesFor(product)) {
+      const [sw, sh] = parseSize(s);
+      const a = sw * sh;
+      if (a >= area) continue;
+      if (tol != null && Math.abs(Math.log((sw / sh) / asp)) > tol) continue;
+      if (a > bestArea) { bestArea = a; best = s; }
+    }
+    return best;
+  };
+  return pick(square ? 0.1 : 0.25) || pick(null);
+}
+
+function autofitTemplate(t, availW, availH) {
+  let cur = JSON.parse(JSON.stringify(t));
+  let fitted = false;
+  for (let iter = 0; iter < 12; iter++) {
+    const { totW, totH } = layoutTemplate(cur);
+    if (totW <= availW && totH <= availH) return { t: cur, fitted };
+    const map = {};
+    let changed = false;
+    for (const g of cur.groups) for (const it of g) {
+      if (!(it.s in map)) map[it.s] = nextSmallerSize(cur.product, it.s);
+      if (map[it.s]) { it.s = map[it.s]; changed = true; }
+    }
+    if (!changed) break;      // nothing smaller exists — place as-is
+    fitted = true;
+  }
+  return { t: cur, fitted };
+}
+
 function templateSVG(t) {
   const spec = WALLS[t.wall];
   const { placed, totW, totH } = layoutTemplate(t);
@@ -1244,7 +1281,10 @@ function applyTemplate(t) {
   snapshot();
   if (state.mode !== 'photo') { state.wallKey = t.wall; state.mode = 'wall'; }
   const spec = wallSpec();
-  const { placed, totW, totH } = layoutTemplate(t);
+  const avail = spec.zone ? { w: spec.zone.w, h: spec.zone.h }
+    : { w: spec.w * 0.85, h: spec.h * 0.75 };
+  const fit = autofitTemplate(t, avail.w, avail.h);
+  const { placed, totW, totH } = layoutTemplate(fit.t);
   const cx = spec.w / 2;
   const cy = t.aff && state.mode !== 'photo' ? spec.h - t.aff
     : spec.zone ? spec.h - spec.zone.center_aff : spec.h / 2;
@@ -1257,7 +1297,9 @@ function applyTemplate(t) {
     state.sel = null;
     $('tplModal').classList.add('hidden');
     syncControls(); renderTray(); renderAll();
-    setStatus(`${t.name} — drag photos from the tray onto pieces to swap images.`);
+    setStatus(fit.fitted
+      ? `${t.name} — sized down to fit this wall. Drag photos from the tray onto pieces to swap images.`
+      : `${t.name} — drag photos from the tray onto pieces to swap images.`);
   });
 }
 
