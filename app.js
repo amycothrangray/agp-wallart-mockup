@@ -997,6 +997,11 @@ const TEMPLATES = [
              [{ s: '16x24', r: true }, { s: '24x36' }, { s: '16x24', r: true }],
              [{ s: '16x24' }, { s: '12x16', r: true }, { s: '16x24' }]],
     sub: 'Nine Framed Fine Art Prints; the outer columns mirror each other.' },
+  { key: 'gallery9w', name: 'The Gallery Wall — Wide', wall: 'sofa', product: 'framed', layout: 'rows', gap: 3, aff: 64,
+    groups: [[{ s: '16x24', r: true }, { s: '12x16' }, { s: '16x24', r: true }],
+             [{ s: '16x24' }, { s: '24x36', r: true }, { s: '16x24' }],
+             [{ s: '16x24', r: true }, { s: '12x16' }, { s: '16x24', r: true }]],
+    sub: 'The same nine frames turned on their side — wide, for a big open wall.' },
   { key: 'six', name: 'The Six', wall: 'tall', product: 'canvas', layout: 'rows', gap: 4,
     groups: [[{ s: '20x30' }, { s: '20x30' }, { s: '20x30' }],
              [{ s: '20x30' }, { s: '20x30' }, { s: '20x30' }]],
@@ -1067,7 +1072,8 @@ function templatePrice(t) {
 function templateSVG(t) {
   const spec = WALLS[t.wall];
   const { placed, totW, totH } = layoutTemplate(t);
-  const cx = spec.w / 2, cy = spec.zone ? spec.h - spec.zone.center_aff : spec.h / 2;
+  const cx = spec.w / 2;
+  const cy = t.aff ? spec.h - t.aff : spec.zone ? spec.h - spec.zone.center_aff : spec.h / 2;
   let rects = '';
   if (spec.furniture) {
     const f = spec.furniture;
@@ -1099,7 +1105,8 @@ function applyTemplate(t) {
   const spec = wallSpec();
   const { placed, totW, totH } = layoutTemplate(t);
   const cx = spec.w / 2;
-  const cy = spec.zone ? spec.h - spec.zone.center_aff : spec.h / 2;
+  const cy = t.aff && state.mode !== 'photo' ? spec.h - t.aff
+    : spec.zone ? spec.h - spec.zone.center_aff : spec.h / 2;
   ensurePhotos(placed.length, ids => {
     state.pieces = placed.map((q, i) => ({
       id: 'tp' + nextId++, photoId: ids[i % ids.length],
