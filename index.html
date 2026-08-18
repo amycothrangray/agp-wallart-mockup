@@ -32,11 +32,26 @@
     <button id="btnAddPhotos" class="wide">+ Add photos</button>
     <input id="filePhotos" type="file" accept="image/*" multiple hidden>
     <div id="thumbs"></div>
+    <div id="shotIdeas" class="hint idea-box">
+      <b>Good ones to ask the client for:</b>
+      <ul>
+        <li>the whole family together</li>
+        <li>each child on their own</li>
+        <li>the parents together</li>
+        <li>each parent with each child</li>
+        <li>a favorite detail or scenery frame</li>
+      </ul>
+      <b>And for their wall:</b> a straight-on photo of the wall with a credit
+      card or dollar bill taped to it &mdash; that sets the true size.
+    </div>
     <p class="hint">Drag a photo onto the wall. Drop it on a piece to swap the image. Photos stay on this computer &mdash; nothing is uploaded.</p>
   </aside>
 
   <section id="stage">
     <div id="toolbar">
+      <div class="tool-group">
+        <button id="btnTemplates" class="small" title="Start from a suggested layout">Templates&hellip;</button>
+      </div>
       <div class="tool-group">
         <label>Wall</label>
         <select id="wallSelect"></select>
@@ -136,6 +151,17 @@
 </main>
 
 <div id="dropHint">Drop photos to add them</div>
+
+<div id="tplModal" class="hidden">
+  <div id="tplSheet">
+    <div class="tpl-head">
+      <span class="panel-title">Suggested layouts</span>
+      <span class="hint">Uses the photos in your tray, in order &mdash; add photos first, or placeholders fill in. Everything stays editable.</span>
+      <button id="tplClose" class="small ghost">Close</button>
+    </div>
+    <div id="tplGrid"></div>
+  </div>
+</div>
 
 <script src="data.js"></script>
 <script src="app.js"></script>

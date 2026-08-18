@@ -374,6 +374,7 @@ function downscale(img, max = 1400) {
 
 function renderTray() {
   const t = $('thumbs');
+  $('shotIdeas').classList.toggle('hidden', Object.keys(state.photos).length > 0);
   t.innerHTML = '';
   for (const [id, ph] of Object.entries(state.photos)) {
     const d = document.createElement('div');
@@ -647,7 +648,7 @@ function startCalibration() {
   const ov = $('calOverlay');
   ov.classList.remove('hidden');
   ov.innerHTML = '';
-  setStatus('Set the scale: click two points a known distance apart (a sofa edge to edge, a door frame, a window).');
+  setStatus('Set the scale: click the two ends of the credit card or dollar bill taped to the wall (zoom in first!) — or any two points a known distance apart.');
 }
 function setStatus(t) { $('statusbar').textContent = t; }
 
@@ -674,10 +675,20 @@ $('calOverlay').addEventListener('pointerdown', e => {
     form.id = 'calForm';
     form.style.left = (M.l + (a[0] + b[0]) / 2) + 'px';
     form.style.top = (M.t + Math.max(a[1], b[1])) + 'px';
-    form.innerHTML = `That line is <input id="calIn" type="number" min="1" max="480" value="84" style="width:60px"> inches
+    form.innerHTML = `<span class="cal-refs">
+        <button class="small ghost on" data-in="3.37" title="A credit card's long edge is 3.37 inches">Credit card</button>
+        <button class="small ghost" data-in="6.14" title="A dollar bill's long edge is 6.14 inches">Dollar bill</button>
+      </span>
+      That line is <input id="calIn" type="number" min="0.5" max="480" step="0.01" value="3.37" style="width:64px"> inches
       <button id="calOk" class="small primary">Set</button> <button id="calCancel" class="small ghost">Cancel</button>`;
     ov.appendChild(form);
     cal.form = true;
+    for (const rb of form.querySelectorAll('.cal-refs button')) {
+      rb.addEventListener('click', () => {
+        form.querySelector('#calIn').value = rb.dataset.in;
+        form.querySelectorAll('.cal-refs button').forEach(b => b.classList.toggle('on', b === rb));
+      });
+    }
     form.querySelector('#calOk').addEventListener('click', () => {
       const inches = parseFloat(form.querySelector('#calIn').value);
       if (inches > 0) {
@@ -923,6 +934,149 @@ function loadSample() {
   }
   $('clientName').value = state.client;
 }
+
+/* ---------------- suggested templates ---------------- */
+const TEMPLATES = [
+  { key: 'gallery9', name: 'The Gallery Wall', wall: 'tall', product: 'framed', layout: 'columns', gap: 3,
+    groups: [[{ s: '16x24' }, { s: '12x16', r: true }, { s: '16x24' }],
+             [{ s: '16x24', r: true }, { s: '24x36' }, { s: '16x24', r: true }],
+             [{ s: '16x24' }, { s: '12x16', r: true }, { s: '16x24' }]],
+    sub: 'Nine Framed Fine Art Prints; the outer columns mirror each other.' },
+  { key: 'six', name: 'The Six', wall: 'tall', product: 'canvas', layout: 'rows', gap: 4,
+    groups: [[{ s: '20x30' }, { s: '20x30' }, { s: '20x30' }],
+             [{ s: '20x30' }, { s: '20x30' }, { s: '20x30' }]],
+    sub: 'Six equal Canvas Gallery Wraps in one calm grid — nothing competes.' },
+  { key: 'triptych', name: 'The Triptych', wall: 'sofa', product: 'floating', layout: 'rows', gap: 8,
+    groups: [[{ s: '20x30' }, { s: '20x30' }, { s: '20x30' }]],
+    sub: 'Three Floating Gallery Wraps over the sofa — the classic.' },
+  { key: 'anchor4', name: 'Anchor & Four', wall: 'sofa', product: 'metal', layout: 'columns', gap: 4,
+    groups: [[{ s: '16x16' }, { s: '16x16' }], [{ s: '24x36' }], [{ s: '16x16' }, { s: '16x16' }]],
+    sub: 'A vertical Metal Print anchored by four squares — the pairs sit flush.' },
+  { key: 'statement', name: 'The Statement', wall: 'sofa', product: 'canvas', layout: 'rows', gap: 0,
+    groups: [[{ s: '30x40', r: true }]],
+    sub: 'One oversized Canvas Gallery Wrap. Let it breathe.' },
+  { key: 'bedrow', name: 'Over the Bed', wall: 'bed', product: 'canvas', layout: 'rows', gap: 4,
+    groups: [[{ s: '12x16', r: true }, { s: '24x36', r: true }, { s: '12x16', r: true }]],
+    sub: 'A landscape trio above the headboard — big centre, small wings.' },
+  { key: 'hall4', name: 'The Hallway Line', wall: 'hallway', product: 'framed', layout: 'rows', gap: 6,
+    groups: [[{ s: '16x20' }, { s: '16x20' }, { s: '16x20' }, { s: '16x20' }]],
+    sub: 'Four Framed Fine Art Prints marching down the hall.' },
+  { key: 'pair', name: 'The Acrylic Pair', wall: 'sofa', product: 'acrylic', layout: 'rows', gap: 6,
+    groups: [[{ s: '26x26' }, { s: '26x26' }]],
+    sub: 'Two square Acrylic Float Frames, side by side. Square crops shine here.' },
+];
+
+function layoutTemplate(t) {
+  const mk = it => ({ product: t.product, size: it.s, rotate: !!it.r });
+  const placed = [];
+  if (t.layout === 'columns') {
+    const cols = t.groups.map(g => g.map(mk));
+    const colW = cols.map(c => Math.max(...c.map(q => pieceDims(q)[0])));
+    const colH = cols.map(c => c.reduce((s, q) => s + pieceDims(q)[1], 0) + t.gap * (c.length - 1));
+    const totW = colW.reduce((a, b) => a + b, 0) + t.gap * (cols.length - 1);
+    const totH = Math.max(...colH);
+    let x = 0;
+    cols.forEach((c, i) => {
+      let y = (totH - colH[i]) / 2;
+      for (const q of c) {
+        const [w, h] = pieceDims(q);
+        placed.push({ ...q, x: x + (colW[i] - w) / 2, y });
+        y += h + t.gap;
+      }
+      x += colW[i] + t.gap;
+    });
+    return { placed, totW, totH };
+  }
+  const rows = t.groups.map(g => g.map(mk));
+  const rowH = rows.map(r => Math.max(...r.map(q => pieceDims(q)[1])));
+  const rowW = rows.map(r => r.reduce((s, q) => s + pieceDims(q)[0], 0) + t.gap * (r.length - 1));
+  const totW = Math.max(...rowW), totH = rowH.reduce((a, b) => a + b, 0) + t.gap * (rows.length - 1);
+  let y = 0;
+  rows.forEach((r, i) => {
+    let x = (totW - rowW[i]) / 2;
+    for (const q of r) {
+      const [w, h] = pieceDims(q);
+      placed.push({ ...q, x, y: y + (rowH[i] - h) / 2 });
+      x += w + t.gap;
+    }
+    y += rowH[i] + t.gap;
+  });
+  return { placed, totW, totH };
+}
+
+function templatePrice(t) {
+  const { placed } = layoutTemplate(t);
+  return placed.reduce((s, q) => s + sizeEntry(q.product, q.size).price, 0);
+}
+
+function templateSVG(t) {
+  const spec = WALLS[t.wall];
+  const { placed, totW, totH } = layoutTemplate(t);
+  const cx = spec.w / 2, cy = spec.zone ? spec.h - spec.zone.center_aff : spec.h / 2;
+  let rects = '';
+  if (spec.furniture) {
+    const f = spec.furniture;
+    rects += `<rect x="${(spec.w - f.w) / 2}" y="${spec.h - f.h * .65}" width="${f.w}" height="${f.h * .65}" rx="3" fill="#ded6cd"/>`;
+  }
+  for (const q of placed) {
+    const [w, h] = pieceDims(q);
+    rects += `<rect x="${cx - totW / 2 + q.x}" y="${cy - totH / 2 + q.y}" width="${w}" height="${h}" fill="#8f867e" stroke="#fff" stroke-width="1"/>`;
+  }
+  return `<svg viewBox="0 0 ${spec.w} ${spec.h}" preserveAspectRatio="xMidYMid meet" style="background:#eee8e0;aspect-ratio:${spec.w}/${spec.h}">${rects}</svg>`;
+}
+
+function ensurePhotos(n, cb) {
+  const have = Object.keys(state.photos);
+  if (have.length) { cb(have); return; }
+  const want = Math.min(n, 6);
+  let left = want;
+  const ids = [];
+  for (let i = 0; i < want; i++) {
+    const id = 'ph' + nextId++;
+    ids.push(id);
+    addPhotoData(id, 'placeholder ' + (i + 1), placeholderPhoto(i + 1, 900, 1350), () => { if (--left === 0) cb(ids); });
+  }
+}
+
+function applyTemplate(t) {
+  snapshot();
+  if (state.mode !== 'photo') { state.wallKey = t.wall; state.mode = 'wall'; }
+  const spec = wallSpec();
+  const { placed, totW, totH } = layoutTemplate(t);
+  const cx = spec.w / 2;
+  const cy = spec.zone ? spec.h - spec.zone.center_aff : spec.h / 2;
+  ensurePhotos(placed.length, ids => {
+    state.pieces = placed.map((q, i) => ({
+      id: 'tp' + nextId++, photoId: ids[i % ids.length],
+      product: q.product, size: q.size, rotate: q.rotate,
+      x: cx - totW / 2 + q.x, y: cy - totH / 2 + q.y, focus: [0.5, 0.45],
+    }));
+    state.sel = null;
+    $('tplModal').classList.add('hidden');
+    syncControls(); renderTray(); renderAll();
+    setStatus(`${t.name} — drag photos from the tray onto pieces to swap images.`);
+  });
+}
+
+function renderTplGrid() {
+  const grid = $('tplGrid');
+  grid.innerHTML = '';
+  for (const t of TEMPLATES) {
+    const n = t.groups.flat().length;
+    const card = document.createElement('button');
+    card.className = 'tpl-card';
+    card.innerHTML = `${templateSVG(t)}
+      <div class="tpl-name">${t.name}</div>
+      <div class="tpl-sub">${t.sub}</div>
+      <div class="tpl-price">${n} piece${n === 1 ? '' : 's'} · ${money(templatePrice(t))}</div>`;
+    card.addEventListener('click', () => applyTemplate(t));
+    grid.appendChild(card);
+  }
+}
+
+$('btnTemplates').addEventListener('click', () => { renderTplGrid(); $('tplModal').classList.remove('hidden'); });
+$('tplClose').addEventListener('click', () => $('tplModal').classList.add('hidden'));
+$('tplModal').addEventListener('pointerdown', e => { if (e.target.id === 'tplModal') $('tplModal').classList.add('hidden'); });
 
 /* ---------------- controls wiring ---------------- */
 function syncControls() {

@@ -11,9 +11,14 @@ Open `index.html` in any browser (or the GitHub Pages link on this repo).
 1. **Add photos** — drag image files in, or click *+ Add photos*.
 2. **Pick a wall** — the four standard presets (tall/stairwell, sofa, bed,
    hallway) with furniture for scale, or *Custom* with any dimensions.
-   Or click *Use photo…* and load a photo of the client's actual wall, then
-   *Set scale* by clicking two points a known distance apart.
-3. **Drag photos onto the wall.** Each piece can be any product and size in
+   Or click *Use photo…* and load a photo of the client's actual wall —
+   ask them to tape a **credit card or dollar bill** to the wall and shoot
+   straight on. Then *Set scale*: zoom in, click the card's two ends, and
+   pick the built-in credit-card (3.37″) or dollar-bill (6.14″) reference.
+3. **Templates…** offers eight suggested layouts (gallery wall, triptych,
+   anchor & four, the six, and more) sized to fit each wall's hanging zone —
+   pick one and swap your photos in.
+4. **Drag photos onto the wall.** Each piece can be any product and size in
    the catalog — Canvas & Floating Gallery Wraps, Metal, Framed Fine Art
    (with real mat + print sizes), Acrylic Float Frames, Giclee prints — all
    rendered to scale with the right frames, mats and float gaps.
