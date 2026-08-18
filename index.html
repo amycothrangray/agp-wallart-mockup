@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=5">
+<link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
 
@@ -172,6 +172,29 @@
   </div>
 </div>
 
+<div id="sendModal" class="hidden">
+  <div id="sendCard">
+    <div class="panel-title">Send your design to Amy</div>
+    <label class="field">Your name
+      <input id="sName" type="text" autocomplete="name" placeholder="The Young family">
+    </label>
+    <label class="field">Your email
+      <input id="sEmail" type="email" autocomplete="email" placeholder="you@example.com">
+    </label>
+    <label class="field">Phone <span class="opt">(optional)</span>
+      <input id="sPhone" type="tel" autocomplete="tel">
+    </label>
+    <label class="field">Note for Amy <span class="opt">(optional)</span>
+      <textarea id="sNote" rows="3" placeholder="We love the triptych but wondered about..."></textarea>
+    </label>
+    <div id="sendErr" class="hint send-err hidden"></div>
+    <div class="field-row send-actions">
+      <button id="sendCancel" class="ghost">Cancel</button>
+      <button id="sendGo" class="primary send">Send design</button>
+    </div>
+  </div>
+</div>
+
 <div id="tplModal" class="hidden">
   <div id="tplSheet">
     <div class="tpl-head">
@@ -183,7 +206,7 @@
   </div>
 </div>
 
-<script src="data.js?v=5"></script>
-<script src="app.js?v=5"></script>
+<script src="data.js?v=6"></script>
+<script src="app.js?v=6"></script>
 </body>
 </html>

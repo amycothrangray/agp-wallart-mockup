@@ -247,6 +247,26 @@ button.send:hover { background: #b56a75; }
 #welcomeCard .hint { margin-bottom: 16px; }
 #welcomeGo { width: 100%; padding: 10px; }
 
+/* ---------- send modal ---------- */
+#sendModal {
+  position: fixed; inset: 0; z-index: 92;
+  background: rgba(74, 72, 68, .4);
+  display: flex; align-items: center; justify-content: center;
+}
+#sendCard {
+  background: var(--paper); border-radius: 10px; box-shadow: 0 24px 64px rgba(40,38,35,.4);
+  width: min(400px, calc(100vw - 40px)); padding: 22px 24px;
+}
+#sendCard .field input, #sendCard .field textarea {
+  font-family: var(--sans); font-size: 13.5px; color: var(--ink);
+  padding: 7px 9px; border: 1px solid var(--line); border-radius: 5px; background: var(--paper);
+  resize: vertical;
+}
+#sendCard .field input:focus, #sendCard .field textarea:focus { outline: none; border-color: var(--rose); }
+#sendCard .opt { color: var(--faint); font-size: 11px; }
+.send-actions { justify-content: flex-end; margin-top: 6px; }
+.send-err { color: #a5463f; margin-bottom: 8px; }
+
 /* ---------- templates modal ---------- */
 #tplModal {
   position: fixed; inset: 0; z-index: 90;

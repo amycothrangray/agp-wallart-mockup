@@ -81,7 +81,7 @@ function serialize(withPhotos) {
   const out = {
     app: 'agp-wallart-mockup', version: 1,
     mode: state.mode, wallKey: state.wallKey, custom: { ...state.custom },
-    coupon: state.coupon, client: state.client,
+    coupon: state.coupon, client: state.client, contact: state.contact || null,
     bg: state.bg ? { ppi: state.bg.ppi, origW: state.bg.iw } : null,
     pieces: state.pieces.map(p => ({ ...p, focus: [...p.focus] })),
   };
@@ -868,6 +868,7 @@ function openDesign(file) {
       state.pieces = []; state.photos = {}; state.bg = null; state.sel = null;
       state.mode = s.mode; state.wallKey = s.wallKey; state.custom = s.custom || state.custom;
       state.coupon = s.coupon || 0; state.client = s.client || '';
+      state.contact = s.contact || null;
       const jobs = Object.entries(s.photos || {});
       let left = jobs.length + (s.bg && s.bg.data ? 1 : 0);
       const done = () => { if (--left <= 0) { syncControls(); renderTray(); renderAll(); } };
@@ -889,6 +890,9 @@ function openDesign(file) {
 
 /* ---------------- send to Amy ---------------- */
 const AMY_EMAIL = 'amy@amygray.net';
+/* Once the DigitalOcean backend is live, set this to its /api/submit URL and
+   designs are delivered to Amy's inbox in one click. Empty = mail-app flow. */
+const SUBMIT_URL = '';
 
 function designSummaryText() {
   const spec = wallSpec();
@@ -910,18 +914,67 @@ function designSummaryText() {
 
 function openMailto(url) { location.href = url; }
 
-async function sendToAmy() {
+function sendToAmy() {
   if (!state.pieces.length) { alert('Put at least one piece on the wall first — try the Templates button!'); return; }
-  if (!state.client) {
-    const n = window.prompt('Your family name (so Amy knows who this is from):', '');
-    if (n) { state.client = n.trim(); $('clientName').value = state.client; }
-  }
-  const fname = ((state.client || 'design').replace(/\s+/g, '-') + '.wallart.json').toLowerCase();
-  const json = JSON.stringify(serialize(true));
-  const subject = `Wall art design — ${state.client || 'new client'}`;
-  const body = designSummaryText();
-  const file = new File([json], fname, { type: 'application/json' });
+  $('sName').value = state.contact?.name || state.client || '';
+  $('sEmail').value = state.contact?.email || '';
+  $('sPhone').value = state.contact?.phone || '';
+  $('sendErr').classList.add('hidden');
+  $('sendGo').disabled = false;
+  $('sendGo').textContent = 'Send design';
+  $('sendModal').classList.remove('hidden');
+  $('sName').focus();
+}
 
+async function doSend() {
+  const contact = {
+    name: $('sName').value.trim(),
+    email: $('sEmail').value.trim(),
+    phone: $('sPhone').value.trim(),
+    note: $('sNote').value.trim(),
+  };
+  if (!contact.name || !/.+@.+\..+/.test(contact.email)) {
+    $('sendErr').textContent = 'Please add your name and a valid email so Amy can reach you.';
+    $('sendErr').classList.remove('hidden');
+    return;
+  }
+  state.contact = contact;
+  state.client = state.client || contact.name;
+  $('clientName').value = state.client;
+
+  const fname = ((state.client || 'design').replace(/\s+/g, '-') + '.wallart.json').toLowerCase();
+  const design = serialize(true);
+  const subject = `Wall art design — ${state.client}`;
+  const contactLine = `\n\nFrom: ${contact.name} <${contact.email}>${contact.phone ? ' · ' + contact.phone : ''}`
+    + (contact.note ? `\nNote: ${contact.note}` : '');
+  const body = designSummaryText() + contactLine;
+
+  // one-click delivery via the backend, when configured
+  if (SUBMIT_URL) {
+    $('sendGo').disabled = true;
+    $('sendGo').textContent = 'Sending…';
+    try {
+      const r = await fetch(SUBMIT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ design, summary: designSummaryText(), contact }),
+      });
+      if (!r.ok) throw new Error('server said ' + r.status);
+      $('sendModal').classList.add('hidden');
+      setStatus('Sent! Your design is in Amy’s inbox — she’ll be in touch soon. 🎉');
+      return;
+    } catch (err) {
+      $('sendGo').disabled = false;
+      $('sendGo').textContent = 'Send design';
+      $('sendErr').textContent = "Couldn't reach the server — sending through your mail app instead.";
+      $('sendErr').classList.remove('hidden');
+      await new Promise(r => setTimeout(r, 1500));
+    }
+  }
+
+  $('sendModal').classList.add('hidden');
+  const json = JSON.stringify(design);
+  const file = new File([json], fname, { type: 'application/json' });
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
       await navigator.share({ files: [file], title: subject, text: body + `\n\nPlease send to ${AMY_EMAIL}` });
@@ -1228,6 +1281,9 @@ $('clientName').addEventListener('input', e => { state.client = e.target.value; 
 
 $('btnExport').addEventListener('click', exportPNG);
 $('btnSend').addEventListener('click', sendToAmy);
+$('sendGo').addEventListener('click', doSend);
+$('sendCancel').addEventListener('click', () => $('sendModal').classList.add('hidden'));
+$('sendModal').addEventListener('pointerdown', e => { if (e.target.id === 'sendModal') $('sendModal').classList.add('hidden'); });
 $('welcomeGo').addEventListener('click', () => {
   $('welcome').classList.add('hidden');
   try { localStorage.setItem('agpWelcomeSeen', '1'); } catch (e) {}
