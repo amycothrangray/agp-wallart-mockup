@@ -246,6 +246,12 @@ function renderPieces() {
   const layer = $('pieces');
   layer.innerHTML = '';
   for (const p of state.pieces) layer.appendChild(pieceEl(p));
+  if (!state.pieces.length && !cal) {
+    const hint = document.createElement('div');
+    hint.className = 'wall-hint';
+    hint.innerHTML = 'This wall is waiting for your favorites.<br><span>Drag a photo in, or start from Templates.</span>';
+    layer.appendChild(hint);
+  }
 }
 
 function pieceEl(p) {
@@ -443,7 +449,7 @@ function renderInspector() {
   const [w, h] = pieceDims(p);
   const spec = wallSpec();
   const centreAff = spec.h - (p.y + h / 2);
-  $('pInfo').innerHTML = `${w}″ × ${h}″ overall &middot; centre ${Math.round(centreAff)}″ off the floor`;
+  $('pInfo').innerHTML = `${w}″ × ${h}″ overall &middot; center ${Math.round(centreAff)}″ off the floor`;
 }
 
 function editSelected(fn) {
@@ -474,7 +480,7 @@ function renderPricing() {
   const total = sub * (1 - c);
   $('priceTotal').textContent = money(total);
   $('priceNote').textContent = state.pieces.length
-    ? (c ? `${money(sub)} before the ${state.coupon}% coupon. Prices from the Sprout price guide.` : 'Prices from the Sprout price guide.')
+    ? (c ? `${money(sub)} before your ${state.coupon}% coupon. Prices are from Amy's collection — what you see is what it costs.` : `Prices are from Amy's collection — what you see is what it costs.`)
     : '';
 }
 
@@ -1152,7 +1158,7 @@ const TEMPLATES = [
     sub: 'One oversized Canvas Gallery Wrap. Let it breathe.' },
   { key: 'bedrow', name: 'Over the Bed', wall: 'bed', product: 'canvas', layout: 'rows', gap: 4,
     groups: [[{ s: '12x16', r: true }, { s: '24x36', r: true }, { s: '12x16', r: true }]],
-    sub: 'A landscape trio above the headboard — big centre, small wings.' },
+    sub: 'A landscape trio above the headboard — big center, small wings.' },
   { key: 'hall4', name: 'The Hallway Line', wall: 'hallway', product: 'framed', layout: 'rows', gap: 6,
     groups: [[{ s: '16x20' }, { s: '16x20' }, { s: '16x20' }, { s: '16x20' }]],
     sub: 'Four Framed Fine Art Prints marching down the hall.' },

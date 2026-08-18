@@ -151,6 +151,19 @@ main { flex: 1; display: flex; min-height: 0; }
   background: color-mix(in srgb, var(--bg) 75%, transparent); padding: 0 6px; border-radius: 3px;
   pointer-events: none;
 }
+.wall-hint {
+  position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%);
+  text-align: center; pointer-events: none;
+  font-family: var(--serif); font-style: italic; font-size: clamp(15px, 2.6vw, 22px);
+  color: color-mix(in srgb, var(--muted) 75%, transparent);
+  line-height: 1.5; white-space: nowrap;
+}
+.wall-hint span {
+  font-family: var(--sans); font-style: normal; font-weight: 300;
+  font-size: clamp(11px, 1.6vw, 13.5px);
+  color: color-mix(in srgb, var(--muted) 65%, transparent);
+}
+
 .guide { position: absolute; background: var(--rose); opacity: .7; }
 .guide.v { width: 1px; } .guide.h { height: 1px; }
 .gap-badge {
