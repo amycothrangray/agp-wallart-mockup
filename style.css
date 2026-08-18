@@ -161,9 +161,35 @@ main { flex: 1; display: flex; min-height: 0; }
 
 /* calibration overlay */
 #calOverlay { position: absolute; inset: 0; cursor: crosshair; z-index: 30; }
-#calOverlay .cal-dot { position: absolute; width: 10px; height: 10px; border-radius: 50%;
-  background: var(--rose); transform: translate(-50%, -50%); }
-#calOverlay .cal-line { position: absolute; height: 2px; background: var(--rose); transform-origin: 0 50%; }
+#calOverlay .cal-line {
+  position: absolute; height: 1.5px; background: var(--rose); transform-origin: 0 50%;
+  box-shadow: 0 0 0 .75px rgba(255,255,255,.9); pointer-events: none;
+}
+.cal-handle {
+  position: absolute; width: 30px; height: 30px; transform: translate(-50%, -50%);
+  border-radius: 50%; cursor: grab; touch-action: none;
+  border: 2px solid var(--rose); background: rgba(255,255,255,.15);
+  box-shadow: 0 0 0 1.5px rgba(255,255,255,.9), 0 2px 8px rgba(40,38,35,.35);
+}
+.cal-handle::before, .cal-handle::after {
+  content: ""; position: absolute; background: var(--rose);
+  box-shadow: 0 0 0 .5px rgba(255,255,255,.9);
+}
+.cal-handle::before { left: 50%; top: 3px; bottom: 3px; width: 1px; margin-left: -0.5px; }
+.cal-handle::after { top: 50%; left: 3px; right: 3px; height: 1px; margin-top: -0.5px; }
+.cal-handle:active { cursor: grabbing; }
+.cal-loupe {
+  position: absolute; width: 150px; height: 150px; border-radius: 50%;
+  transform: translate(-50%, -50%);
+  border: 3px solid var(--paper); box-shadow: 0 6px 24px rgba(40,38,35,.45), 0 0 0 1px var(--faint);
+  background-repeat: no-repeat; background-color: #eee8e0;
+  pointer-events: none; z-index: 40;
+}
+.cal-loupe::before, .cal-loupe::after {
+  content: ""; position: absolute; background: color-mix(in srgb, var(--rose) 75%, transparent);
+}
+.cal-loupe::before { left: 50%; top: 12px; bottom: 12px; width: 1px; }
+.cal-loupe::after { top: 50%; left: 12px; right: 12px; height: 1px; }
 #calForm {
   position: absolute; transform: translate(-50%, 12px);
   background: var(--paper); border: 1px solid var(--line); border-radius: 6px;

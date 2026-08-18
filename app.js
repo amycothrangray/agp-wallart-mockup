@@ -166,6 +166,7 @@ function renderAll() {
   renderInspector();
   renderPricing();
   renderStatus();
+  if (typeof cal !== 'undefined' && cal) renderCal();
 }
 
 function renderZone(spec, ww, wh) {
@@ -645,67 +646,139 @@ function setBgFile(file) {
   img.src = url;
 }
 
+/* Calibration: two draggable handles with a magnifier loupe.
+   Points are stored as fractions of the wall, so canvas zoom stays usable. */
 let cal = null;
+const LOUPE_R = 75, LOUPE_MAG = 4;
+
 function startCalibration() {
   if (!state.bg) return;
-  cal = { pts: [] };
-  const ov = $('calOverlay');
-  ov.classList.remove('hidden');
-  ov.innerHTML = '';
-  setStatus('Set the scale: click the two ends of the credit card or dollar bill taped to the wall (zoom in first!) — or any two points a known distance apart.');
+  cal = { pts: [], formEl: null };
+  $('calOverlay').classList.remove('hidden');
+  renderCal();
+  setStatus('Click one end of the credit card / dollar bill, then the other. Then drag the handles to fine-tune — a magnifier appears while you drag. Esc cancels; the zoom buttons still work.');
 }
 function setStatus(t) { $('statusbar').textContent = t; }
 
-$('calOverlay').addEventListener('pointerdown', e => {
-  if (!cal || cal.form) return;
-  const r = $('wallbox').getBoundingClientRect();
-  const x = e.clientX - r.left, y = e.clientY - r.top;
-  cal.pts.push([x, y]);
+function calFrac(e) {
+  const r = wallboxEl.getBoundingClientRect();
+  return [clamp((e.clientX - r.left) / r.width, 0, 1), clamp((e.clientY - r.top) / r.height, 0, 1)];
+}
+
+function renderCal() {
   const ov = $('calOverlay');
-  const dot = document.createElement('div');
-  dot.className = 'cal-dot';
-  dot.style.left = (M.l + x) + 'px'; dot.style.top = (M.t + y) + 'px';
-  ov.appendChild(dot);
+  if (!cal) return;
+  const spec = wallSpec();
+  const ww = spec.w * ppi, wh = spec.h * ppi;
+  const px = p => [M.l + p[0] * ww, M.t + p[1] * wh];
+  const form = cal.formEl;
+  ov.innerHTML = '';
+
   if (cal.pts.length === 2) {
-    const [a, b] = cal.pts;
-    const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    const [a, b] = cal.pts.map(px);
     const line = document.createElement('div');
     line.className = 'cal-line';
-    line.style.left = (M.l + a[0]) + 'px'; line.style.top = (M.t + a[1]) + 'px';
-    line.style.width = len + 'px';
+    line.style.left = a[0] + 'px'; line.style.top = a[1] + 'px';
+    line.style.width = Math.hypot(b[0] - a[0], b[1] - a[1]) + 'px';
     line.style.transform = `rotate(${Math.atan2(b[1] - a[1], b[0] - a[0])}rad)`;
     ov.appendChild(line);
-    const form = document.createElement('div');
-    form.id = 'calForm';
-    form.style.left = (M.l + (a[0] + b[0]) / 2) + 'px';
-    form.style.top = (M.t + Math.max(a[1], b[1])) + 'px';
-    form.innerHTML = `<span class="cal-refs">
-        <button class="small ghost on" data-in="3.37" title="A credit card's long edge is 3.37 inches">Credit card</button>
-        <button class="small ghost" data-in="6.14" title="A dollar bill's long edge is 6.14 inches">Dollar bill</button>
-      </span>
-      That line is <input id="calIn" type="number" min="0.5" max="480" step="0.01" value="3.37" style="width:64px"> inches
-      <button id="calOk" class="small primary">Set</button> <button id="calCancel" class="small ghost">Cancel</button>`;
-    ov.appendChild(form);
-    cal.form = true;
-    for (const rb of form.querySelectorAll('.cal-refs button')) {
-      rb.addEventListener('click', () => {
-        form.querySelector('#calIn').value = rb.dataset.in;
-        form.querySelectorAll('.cal-refs button').forEach(b => b.classList.toggle('on', b === rb));
-      });
-    }
-    form.querySelector('#calOk').addEventListener('click', () => {
-      const inches = parseFloat(form.querySelector('#calIn').value);
-      if (inches > 0) {
-        const imgPx = len / ppi * state.bg.ppi;   // screen px -> image px at current scale
-        snapshot();
-        state.bg.ppi = imgPx / inches;
-      }
-      endCalibration();
-    });
-    form.querySelector('#calCancel').addEventListener('click', endCalibration);
-    form.querySelector('#calIn').focus();
   }
+  cal.pts.forEach((p, i) => {
+    const [x, y] = px(p);
+    const h = document.createElement('div');
+    h.className = 'cal-handle';
+    h.style.left = x + 'px'; h.style.top = y + 'px';
+    h.addEventListener('pointerdown', ev => calDrag(ev, i));
+    ov.appendChild(h);
+  });
+  if (cal.pts.length === 2) {
+    if (!form) buildCalForm();
+    const [a, b] = cal.pts.map(px);
+    cal.formEl.style.left = clamp((a[0] + b[0]) / 2, 170, ov.clientWidth - 170) + 'px';
+    cal.formEl.style.top = (Math.max(a[1], b[1]) + 14) + 'px';
+    ov.appendChild(cal.formEl);
+  }
+  if (cal.loupeEl) ov.appendChild(cal.loupeEl);
+}
+
+function buildCalForm() {
+  const form = document.createElement('div');
+  form.id = 'calForm';
+  form.innerHTML = `<span class="cal-refs">
+      <button class="small ghost on" data-in="3.37" title="A credit card's long edge is 3.37 inches">Credit card</button>
+      <button class="small ghost" data-in="6.14" title="A dollar bill's long edge is 6.14 inches">Dollar bill</button>
+    </span>
+    That line is <input id="calIn" type="number" min="0.5" max="480" step="0.01" value="3.37" style="width:64px"> inches
+    <button id="calOk" class="small primary">Set</button>
+    <button id="calRedo" class="small ghost" title="Clear both points and start over">Redo</button>
+    <button id="calCancel" class="small ghost">Cancel</button>`;
+  form.addEventListener('pointerdown', e => e.stopPropagation());
+  for (const rb of form.querySelectorAll('.cal-refs button')) {
+    rb.addEventListener('click', () => {
+      form.querySelector('#calIn').value = rb.dataset.in;
+      form.querySelectorAll('.cal-refs button').forEach(b => b.classList.toggle('on', b === rb));
+    });
+  }
+  form.querySelector('#calOk').addEventListener('click', () => {
+    const inches = parseFloat(form.querySelector('#calIn').value);
+    const [a, b] = cal.pts;
+    const imgPx = Math.hypot((b[0] - a[0]) * state.bg.iw, (b[1] - a[1]) * state.bg.ih);
+    if (inches > 0 && imgPx > 2) {
+      snapshot();
+      state.bg.ppi = imgPx / inches;
+    }
+    endCalibration();
+  });
+  form.querySelector('#calRedo').addEventListener('click', () => {
+    cal.pts = []; cal.formEl = null; renderCal();
+    setStatus('Click one end of the reference, then the other.');
+  });
+  form.querySelector('#calCancel').addEventListener('click', endCalibration);
+  cal.formEl = form;
+}
+
+function calDrag(ev, i) {
+  ev.stopPropagation(); ev.preventDefault();
+  const move = e => { cal.pts[i] = calFrac(e); showLoupe(i); renderCal(); };
+  const up = () => {
+    window.removeEventListener('pointermove', move);
+    window.removeEventListener('pointerup', up);
+    cal.loupeEl = null; renderCal();
+  };
+  window.addEventListener('pointermove', move);
+  window.addEventListener('pointerup', up);
+  showLoupe(i); renderCal();
+}
+
+function showLoupe(i) {
+  const spec = wallSpec();
+  const ww = spec.w * ppi, wh = spec.h * ppi;
+  const p = cal.pts[i];
+  const x = M.l + p[0] * ww, y = M.t + p[1] * wh;
+  let l = cal.loupeEl;
+  if (!l) {
+    l = document.createElement('div');
+    l.className = 'cal-loupe';
+    l.style.backgroundImage = `url(${state.bg.url})`;
+    cal.loupeEl = l;
+  }
+  // place the loupe above-right of the handle, flipping if it would leave the scene
+  const ox = x + LOUPE_R + 90 > M.l + ww + M.r ? -(LOUPE_R + 24) : LOUPE_R + 24;
+  const oy = y - LOUPE_R - 24 < 0 ? LOUPE_R + 24 : -(LOUPE_R + 24);
+  l.style.left = (x + ox) + 'px';
+  l.style.top = (y + oy) + 'px';
+  l.style.backgroundSize = `${ww * LOUPE_MAG}px ${wh * LOUPE_MAG}px`;
+  l.style.backgroundPosition = `${-(p[0] * ww * LOUPE_MAG - LOUPE_R)}px ${-(p[1] * wh * LOUPE_MAG - LOUPE_R)}px`;
+}
+
+$('calOverlay').addEventListener('pointerdown', e => {
+  if (!cal || cal.pts.length >= 2) return;
+  if (e.target.closest('.cal-handle') || e.target.closest('#calForm')) return;
+  cal.pts.push(calFrac(e));
+  renderCal();
+  if (cal.pts.length === 1) setStatus('Now click the other end. You can drag either handle afterwards to fine-tune.');
 });
+
 function endCalibration() {
   cal = null;
   $('calOverlay').classList.add('hidden');
@@ -1304,6 +1377,7 @@ $('btnLoad').addEventListener('click', () => {
 
 /* keyboard */
 window.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && cal) { endCalibration(); return; }
   const tag = document.activeElement.tagName;
   if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
   const mod = e.metaKey || e.ctrlKey;
