@@ -714,7 +714,7 @@ function endCalibration() {
 }
 
 /* ---------------- export PNG ---------------- */
-async function exportPNG() {
+async function renderMockup() {
   await document.fonts.ready;
   const spec = wallSpec();
   const P = 12;                                   // export px per inch
@@ -841,6 +841,10 @@ async function exportPNG() {
   ctx.fillStyle = '#b5afa8'; ctx.font = '300 13px Jost, sans-serif';
   ctx.fillText('Amy Gray Photography · to scale · amygrayphotography.com', x0, c.height - 18);
 
+  return c;
+}
+async function exportPNG() {
+  const c = await renderMockup();
   const a = document.createElement('a');
   a.download = ((state.client || 'wall-art').replace(/\s+/g, '-') + '-mockup.png').toLowerCase();
   a.href = c.toDataURL('image/png');
@@ -954,10 +958,11 @@ async function doSend() {
     $('sendGo').disabled = true;
     $('sendGo').textContent = 'Sending…';
     try {
+      const png = (await renderMockup()).toDataURL('image/png').split(',')[1];
       const r = await fetch(SUBMIT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ design, summary: designSummaryText(), contact }),
+        body: JSON.stringify({ design, summary: designSummaryText(), contact, png }),
       });
       if (!r.ok) throw new Error('server said ' + r.status);
       $('sendModal').classList.add('hidden');
