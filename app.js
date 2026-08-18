@@ -890,9 +890,9 @@ function openDesign(file) {
 
 /* ---------------- send to Amy ---------------- */
 const AMY_EMAIL = 'amy@amygray.net';
-/* Once the DigitalOcean backend is live, set this to its /api/submit URL and
-   designs are delivered to Amy's inbox in one click. Empty = mail-app flow. */
-const SUBMIT_URL = '';
+/* The DigitalOcean backend: designs POST here and land in Amy's inbox in one
+   click. Set to '' to fall back to the mail-app flow. */
+const SUBMIT_URL = 'https://dolphin-app-f4t5q.ondigitalocean.app/api/submit';
 
 function designSummaryText() {
   const spec = wallSpec();
