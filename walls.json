@@ -1,0 +1,54 @@
+{
+ "tall": {
+  "name": "Tall wall / stairwell",
+  "w": 96,
+  "h": 126,
+  "zone": {
+   "w": 80,
+   "h": 90,
+   "center_aff": 68
+  },
+  "furniture": null
+ },
+ "sofa": {
+  "name": "Sofa wall",
+  "w": 120,
+  "h": 96,
+  "zone": {
+   "w": 84,
+   "h": 48,
+   "center_aff": 62
+  },
+  "furniture": {
+   "kind": "sofa",
+   "w": 84,
+   "h": 34
+  }
+ },
+ "bed": {
+  "name": "Bed / headboard wall",
+  "w": 120,
+  "h": 96,
+  "zone": {
+   "w": 84,
+   "h": 32,
+   "center_aff": 70
+  },
+  "furniture": {
+   "kind": "bed",
+   "w": 80,
+   "h": 42
+  }
+ },
+ "hallway": {
+  "name": "Hallway",
+  "w": 120,
+  "h": 96,
+  "zone": {
+   "w": 110,
+   "h": 30,
+   "center_aff": 60
+  },
+  "furniture": null
+ }
+}

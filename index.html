@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Amy Gray Wall Art — Mock-Up Creator</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='12' y='16' width='76' height='68' rx='4' fill='%234a4844'/><rect x='22' y='26' width='56' height='48' fill='%23f0e1db'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header id="topbar">
+  <div class="brand">
+    <span class="brand-name">Amy Gray</span>
+    <span class="brand-sub">wall art mock-up</span>
+  </div>
+  <input id="clientName" type="text" placeholder="Client name" spellcheck="false">
+  <div class="top-actions">
+    <button id="btnSample" class="ghost" title="Load a sample design with placeholder art">Sample</button>
+    <button id="btnLoad" class="ghost" title="Open a saved .wallart.json design">Open</button>
+    <button id="btnSave" class="ghost" title="Save this design (photos included) as a file">Save</button>
+    <button id="btnExport" class="primary" title="Download a to-scale PNG mock-up">Export PNG</button>
+  </div>
+</header>
+
+<main>
+  <aside id="tray">
+    <div class="panel-title">Photos</div>
+    <button id="btnAddPhotos" class="wide">+ Add photos</button>
+    <input id="filePhotos" type="file" accept="image/*" multiple hidden>
+    <div id="thumbs"></div>
+    <p class="hint">Drag a photo onto the wall. Drop it on a piece to swap the image. Photos stay on this computer &mdash; nothing is uploaded.</p>
+  </aside>
+
+  <section id="stage">
+    <div id="toolbar">
+      <div class="tool-group">
+        <label>Wall</label>
+        <select id="wallSelect"></select>
+        <span id="customWallInputs" class="hidden">
+          <input id="customW" type="number" min="24" max="480" value="120" title="Wall width, inches"> &times;
+          <input id="customH" type="number" min="24" max="240" value="96" title="Wall height, inches"> in
+        </span>
+      </div>
+      <div class="tool-group">
+        <label>Room photo</label>
+        <button id="btnBg" class="small ghost" title="Use a photo of the client's actual wall as the backdrop">Use photo&hellip;</button>
+        <input id="fileBg" type="file" accept="image/*" hidden>
+        <button id="btnCalibrate" class="small ghost hidden" title="Click two points a known distance apart to set the scale">Set scale</button>
+        <button id="btnBgOff" class="small ghost hidden" title="Back to the plain wall">Clear</button>
+      </div>
+      <div class="tool-group">
+        <label>Arrange</label>
+        <button id="arrRow" class="small ghost" title="Line all pieces up in a row, centred in the hanging zone">Row</button>
+        <button id="arrCol" class="small ghost" title="Stack all pieces in a column">Column</button>
+        <button id="arrGrid" class="small ghost" title="Arrange all pieces in a grid">Grid</button>
+        <input id="gapIn" type="number" min="0" max="24" step="0.5" value="4" title="Gap between pieces, inches"> in gap
+      </div>
+      <div class="tool-group">
+        <label>Show</label>
+        <button id="tglDims" class="small toggle on" title="Wall measurements">Dims</button>
+        <button id="tglZone" class="small toggle on" title="Recommended hanging zone">Zone</button>
+        <button id="tglPerson" class="small toggle" title="5&prime;5&Prime; person, for scale">Person</button>
+        <button id="tglLabels" class="small toggle on" title="Size label on each piece">Labels</button>
+      </div>
+      <div class="tool-group">
+        <label>Zoom</label>
+        <button id="zoomOut" class="small ghost">&minus;</button>
+        <button id="zoomFit" class="small ghost">Fit</button>
+        <button id="zoomIn" class="small ghost">+</button>
+      </div>
+    </div>
+    <div id="viewport">
+      <div id="scene">
+        <div id="wallbox">
+          <div id="zone"></div>
+          <div id="furniture"></div>
+          <div id="pieces"></div>
+          <div id="guides"></div>
+        </div>
+        <div id="floor"></div>
+        <div id="person"></div>
+        <div id="rulerTop" class="ruler"></div>
+        <div id="rulerLeft" class="ruler"></div>
+        <div id="calOverlay" class="hidden"></div>
+      </div>
+    </div>
+    <div id="statusbar"></div>
+  </section>
+
+  <aside id="side">
+    <div id="inspector">
+      <div class="panel-title">Piece</div>
+      <div id="inspEmpty" class="hint">Click a piece on the wall to edit it, or drag a photo in to start.</div>
+      <div id="inspBody" class="hidden">
+        <label class="field">Product
+          <select id="pProduct"></select>
+        </label>
+        <label class="field">Size
+          <select id="pSize"></select>
+        </label>
+        <div class="field-row">
+          <button id="pRotate" class="small ghost" title="Swap width and height">Rotate</button>
+          <button id="pDup" class="small ghost" title="Duplicate (Cmd+D)">Duplicate</button>
+          <button id="pDelete" class="small danger" title="Remove (Delete)">Remove</button>
+        </div>
+        <div class="field-row">
+          <button id="pBack" class="small ghost" title="Send behind other pieces">Send back</button>
+          <button id="pFront" class="small ghost" title="Bring in front">Bring front</button>
+        </div>
+        <label class="field slider">Crop &larr;&rarr;
+          <input id="pFocusX" type="range" min="0" max="100" value="50">
+        </label>
+        <label class="field slider">Crop &uarr;&darr;
+          <input id="pFocusY" type="range" min="0" max="100" value="45">
+        </label>
+        <div id="pInfo" class="hint"></div>
+      </div>
+    </div>
+    <div id="pricing">
+      <div class="panel-title">Pricing</div>
+      <div id="priceList"></div>
+      <div class="price-row coupon-row">
+        <span>Coupon</span>
+        <span><input id="coupon" type="number" min="0" max="100" step="5" value="0"> %</span>
+      </div>
+      <div class="price-row total-row">
+        <span>Total</span><span id="priceTotal">$0</span>
+      </div>
+      <p class="hint" id="priceNote"></p>
+    </div>
+  </aside>
+</main>
+
+<div id="dropHint">Drop photos to add them</div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

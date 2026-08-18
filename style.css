@@ -1,0 +1,222 @@
+/* Amy Gray Photography — brand palette from amygrayphotography.com */
+:root {
+  --ink: #4a4844;
+  --muted: #908982;
+  --faint: #b5afa8;
+  --paper: #ffffff;
+  --bg: #f7f5f2;
+  --blush: #f0e1db;
+  --rose: #c67a85;
+  --wall: #eee8e0;
+  --wall-shade: #e4dcd2;
+  --floor: #cbbdae;
+  --furn: #ded6cd;
+  --line: #e4dfd8;
+  --serif: "Lora", Georgia, serif;
+  --sans: "Jost", "Avenir Next", "Helvetica Neue", sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.hidden { display: none !important; }
+
+/* ---------- top bar ---------- */
+#topbar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 10px 18px;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  z-index: 20;
+}
+.brand { display: flex; flex-direction: column; line-height: 1.1; }
+.brand-name { font-family: var(--serif); font-size: 21px; letter-spacing: .5px; }
+.brand-sub { font-size: 10px; letter-spacing: 3.5px; text-transform: uppercase; color: var(--rose); }
+#clientName {
+  font-family: var(--serif); font-size: 16px; color: var(--ink);
+  border: none; border-bottom: 1px dashed var(--faint);
+  background: transparent; padding: 4px 2px; width: 200px; outline: none;
+}
+#clientName:focus { border-bottom-color: var(--rose); }
+.top-actions { margin-left: auto; display: flex; gap: 8px; }
+
+/* ---------- buttons & inputs ---------- */
+button {
+  font-family: var(--sans); font-size: 13px; color: var(--ink);
+  background: var(--paper); border: 1px solid var(--line);
+  border-radius: 4px; padding: 7px 14px; cursor: pointer;
+  transition: background .12s, border-color .12s;
+}
+button:hover { border-color: var(--faint); background: var(--bg); }
+button.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+button.primary:hover { background: #35332f; }
+button.ghost { background: transparent; }
+button.small { padding: 4px 10px; font-size: 12px; }
+button.danger { color: #a5463f; border-color: #dcc2bf; }
+button.danger:hover { background: #f8ecea; }
+button.toggle { color: var(--muted); }
+button.toggle.on { background: var(--blush); border-color: var(--blush); color: var(--ink); }
+button.wide { width: 100%; }
+input[type=number] {
+  font-family: var(--sans); font-size: 13px; color: var(--ink);
+  width: 58px; padding: 4px 6px; border: 1px solid var(--line); border-radius: 4px;
+  background: var(--paper);
+}
+select {
+  font-family: var(--sans); font-size: 13px; color: var(--ink);
+  padding: 5px 8px; border: 1px solid var(--line); border-radius: 4px;
+  background: var(--paper); max-width: 100%;
+}
+
+/* ---------- layout ---------- */
+main { flex: 1; display: flex; min-height: 0; }
+#tray {
+  width: 208px; flex: none; background: var(--paper);
+  border-right: 1px solid var(--line);
+  padding: 14px; display: flex; flex-direction: column; gap: 10px;
+  overflow-y: auto;
+}
+#side {
+  width: 250px; flex: none; background: var(--paper);
+  border-left: 1px solid var(--line);
+  padding: 14px; display: flex; flex-direction: column; gap: 20px;
+  overflow-y: auto;
+}
+#stage { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.panel-title {
+  font-family: var(--serif); font-size: 16px; margin-bottom: 4px;
+}
+.hint { font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+
+/* ---------- toolbar ---------- */
+#toolbar {
+  display: flex; flex-wrap: wrap; gap: 6px 22px; align-items: center;
+  padding: 8px 16px; background: var(--paper); border-bottom: 1px solid var(--line);
+}
+.tool-group { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.tool-group > label {
+  font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--faint);
+  margin-right: 2px;
+}
+
+/* ---------- viewport / scene ---------- */
+#viewport { flex: 1; overflow: auto; display: grid; place-items: center; padding: 20px; }
+#scene { position: relative; flex: none; }
+#wallbox {
+  position: absolute; background: linear-gradient(var(--wall), var(--wall-shade));
+  outline: 2px solid #d4ccc3;
+}
+#wallbox.photo-bg { background-size: cover; outline-color: #b9b2a9; }
+#floor {
+  position: absolute; background: var(--floor);
+  border-top: 3px solid #b2a394;
+}
+#zone {
+  position: absolute; border: 1.5px dashed var(--rose); opacity: .45;
+  border-radius: 6px; pointer-events: none;
+}
+#furniture, #person { position: absolute; pointer-events: none; }
+#furniture svg, #person svg { display: block; overflow: visible; }
+.furn-label, .person-label { font-family: var(--sans); font-weight: 300; fill: var(--muted); }
+
+/* rulers */
+.ruler { position: absolute; pointer-events: none; color: var(--muted); font-weight: 300; font-size: 12px; }
+.ruler .bar { position: absolute; background: var(--muted); }
+.ruler .lab { position: absolute; background: var(--bg); padding: 1px 7px; white-space: nowrap; }
+#rulerLeft .lab { transform: rotate(-90deg); transform-origin: center; }
+
+/* ---------- pieces ---------- */
+#pieces, #guides { position: absolute; inset: 0; }
+#guides { pointer-events: none; }
+.piece { position: absolute; cursor: grab; }
+.piece:active { cursor: grabbing; }
+.piece .art { position: absolute; overflow: hidden; background: #ddd; }
+.piece .art img { position: absolute; max-width: none; pointer-events: none; -webkit-user-drag: none; }
+.piece.selected::after {
+  content: ""; position: absolute; inset: -5px;
+  border: 2px solid var(--rose); border-radius: 2px; pointer-events: none;
+}
+.piece .sizetag {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  font-size: 11px; font-weight: 300; color: var(--muted); white-space: nowrap;
+  background: color-mix(in srgb, var(--bg) 75%, transparent); padding: 0 6px; border-radius: 3px;
+  pointer-events: none;
+}
+.guide { position: absolute; background: var(--rose); opacity: .7; }
+.guide.v { width: 1px; } .guide.h { height: 1px; }
+.gap-badge {
+  position: absolute; transform: translate(-50%, -50%);
+  font-size: 10.5px; color: var(--rose); background: var(--paper);
+  border: 1px solid var(--blush); border-radius: 8px; padding: 0 6px; white-space: nowrap;
+}
+
+/* calibration overlay */
+#calOverlay { position: absolute; inset: 0; cursor: crosshair; z-index: 30; }
+#calOverlay .cal-dot { position: absolute; width: 10px; height: 10px; border-radius: 50%;
+  background: var(--rose); transform: translate(-50%, -50%); }
+#calOverlay .cal-line { position: absolute; height: 2px; background: var(--rose); transform-origin: 0 50%; }
+#calForm {
+  position: absolute; transform: translate(-50%, 12px);
+  background: var(--paper); border: 1px solid var(--line); border-radius: 6px;
+  padding: 10px; display: flex; gap: 6px; align-items: center; box-shadow: 0 8px 24px rgba(74,72,68,.18);
+  font-size: 12.5px; z-index: 31;
+}
+
+/* ---------- statusbar ---------- */
+#statusbar {
+  padding: 5px 16px; font-size: 11.5px; font-weight: 300; color: var(--muted);
+  background: var(--paper); border-top: 1px solid var(--line); min-height: 26px;
+}
+
+/* ---------- tray thumbs ---------- */
+#thumbs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.thumb {
+  position: relative; border-radius: 4px; overflow: hidden; cursor: grab;
+  border: 1px solid var(--line); aspect-ratio: 1; background: var(--bg);
+}
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.thumb .tname {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  font-size: 9.5px; padding: 2px 5px; color: #fff;
+  background: linear-gradient(transparent, rgba(40,38,35,.72));
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.thumb .tdel {
+  position: absolute; top: 3px; right: 3px; width: 17px; height: 17px;
+  border-radius: 50%; border: none; background: rgba(40,38,35,.55); color: #fff;
+  font-size: 11px; line-height: 17px; padding: 0; display: none;
+}
+.thumb:hover .tdel { display: block; }
+
+/* ---------- inspector ---------- */
+.field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; font-size: 12px; color: var(--muted); }
+.field-row { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+.field.slider input { width: 100%; accent-color: var(--rose); }
+#pInfo { margin-top: 6px; }
+
+/* ---------- pricing ---------- */
+.price-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13px; }
+.price-row .sub { color: var(--muted); font-weight: 300; font-size: 11.5px; }
+.price-item { border-bottom: 1px solid var(--bg); }
+.coupon-row { color: var(--muted); border-top: 1px solid var(--line); margin-top: 8px; padding-top: 10px; }
+.coupon-row input { width: 70px; }
+.total-row { font-family: var(--serif); font-size: 17px; padding-top: 8px; }
+
+/* ---------- drop hint ---------- */
+#dropHint {
+  position: fixed; inset: 14px; z-index: 100; display: none;
+  border: 2.5px dashed var(--rose); border-radius: 12px;
+  background: color-mix(in srgb, var(--blush) 55%, transparent);
+  font-family: var(--serif); font-size: 24px; color: var(--ink);
+  align-items: center; justify-content: center; pointer-events: none;
+}
+body.dragging #dropHint { display: flex; }
