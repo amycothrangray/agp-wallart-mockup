@@ -127,6 +127,10 @@ main { flex: 1; display: flex; min-height: 0; }
 #furniture, #person { position: absolute; pointer-events: none; }
 #furniture svg, #person svg { display: block; overflow: visible; }
 .furn-label, .person-label { font-family: var(--sans); font-weight: 300; fill: var(--muted); }
+.person-tag {
+  position: absolute; left: -36px; top: 50%; transform: translateY(-50%);
+  font-size: 12px; font-weight: 300; color: var(--muted); white-space: nowrap;
+}
 
 /* rulers */
 .ruler { position: absolute; pointer-events: none; color: var(--muted); font-weight: 300; font-size: 12px; }
