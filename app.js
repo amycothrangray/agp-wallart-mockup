@@ -194,6 +194,10 @@ function renderAll() {
   renderInspector();
   renderPricing();
   renderStatus();
+  if (state.bg && state.mode === 'photo') {
+    if (document.activeElement !== $('bgW')) $('bgW').value = Math.round(spec.w);
+    if (document.activeElement !== $('bgH')) $('bgH').value = Math.round(spec.h);
+  }
   if (typeof cal !== 'undefined' && cal) renderCal();
 }
 
@@ -712,7 +716,7 @@ function startCalibration() {
   cal = { pts: [], formEl: null };
   $('calOverlay').classList.remove('hidden');
   renderCal();
-  setStatus('Click one end of the credit card / dollar bill, then the other. Then drag the handles to fine-tune — a magnifier appears while you drag. Esc cancels; the zoom buttons still work.');
+  setStatus('Click one end of the credit card / dollar bill, then the other — then drag the handles to fine-tune (a magnifier appears while you drag). Or press Esc and just type your wall’s size in the toolbar.');
 }
 function setStatus(t) { $('statusbar').textContent = t; }
 
@@ -1386,6 +1390,7 @@ function syncControls() {
   $('coupon').value = state.coupon;
   $('clientName').value = state.client;
   $('btnCalibrate').classList.toggle('hidden', !state.bg);
+  $('bgSizeInputs').classList.toggle('hidden', !state.bg);
   $('btnBgOff').classList.toggle('hidden', !state.bg);
   for (const k of ['dims', 'zone', 'person', 'labels'])
     $('tgl' + k[0].toUpperCase() + k.slice(1)).classList.toggle('on', state.show[k]);
@@ -1407,6 +1412,24 @@ $('filePhotos').addEventListener('change', e => { addPhotoFiles(e.target.files);
 $('btnBg').addEventListener('click', () => $('fileBg').click());
 $('fileBg').addEventListener('change', e => { if (e.target.files[0]) { snapshot(); setBgFile(e.target.files[0]); } e.target.value = ''; });
 $('btnCalibrate').addEventListener('click', startCalibration);
+$('bgW').addEventListener('change', e => {
+  const v = clamp(+e.target.value || 0, 24, 600);
+  if (!state.bg || !v) return;
+  if (cal) endCalibration();
+  snapshot();
+  state.bg.ppi = state.bg.iw / v;
+  renderAll();
+  setStatus(`Set from your wall width: ${fmtIn(v)} wide × ${fmtIn(Math.round(state.bg.ih / state.bg.ppi * 10) / 10)} tall.`);
+});
+$('bgH').addEventListener('change', e => {
+  const v = clamp(+e.target.value || 0, 24, 360);
+  if (!state.bg || !v) return;
+  if (cal) endCalibration();
+  snapshot();
+  state.bg.ppi = state.bg.ih / v;
+  renderAll();
+  setStatus(`Set from your wall height: ${fmtIn(Math.round(state.bg.iw / state.bg.ppi * 10) / 10)} wide × ${fmtIn(v)} tall.`);
+});
 $('btnBgOff').addEventListener('click', () => { snapshot(); state.bg = null; state.mode = 'wall'; syncControls(); renderAll(); });
 
 $('arrRow').addEventListener('click', () => arrange('row'));

@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=16">
+<link rel="stylesheet" href="style.css?v=17">
 </head>
 <body>
 
@@ -42,9 +42,10 @@
         <li>each parent with each child</li>
         <li>a quiet detail or scenery moment</li>
       </ul>
-      <b>Want to see it on your own wall?</b> Tape a credit card or dollar
-      bill to the wall, snap a straight-on photo, and load it with
-      <i>Use photo&hellip;</i> &mdash; everything will be true to size.
+      <b>Want to see it on your own wall?</b> Snap a straight-on photo and
+      load it with <i>Use photo&hellip;</i> &mdash; then either type your
+      wall's measurements, or tape a credit card or dollar bill to the wall
+      before you shoot and click its ends. Everything will be true to size.
     </div>
     <p class="hint">Drag a photo onto the wall to hang it, or drop it on a piece to swap the image. Your photos stay right here on your device until you choose to send your design.</p>
   </aside>
@@ -67,6 +68,10 @@
         <button id="btnBg" class="small ghost" title="Design on a photo of your actual wall">Use photo&hellip;</button>
         <input id="fileBg" type="file" accept="image/*" hidden>
         <button id="btnCalibrate" class="small ghost hidden" title="Click two points a known distance apart to set the scale">Set scale</button>
+        <span id="bgSizeInputs" class="hidden" title="Know your wall's size? Type it — width or height is enough; the other fills in from the photo.">
+          or it&rsquo;s <input id="bgW" type="number" min="24" max="600" step="1" title="The photo's full width, in inches"> &times;
+          <input id="bgH" type="number" min="24" max="360" step="1" title="The photo's full height, in inches"> in
+        </span>
         <button id="btnBgOff" class="small ghost hidden" title="Back to the plain wall">Clear</button>
       </div>
       <div class="tool-group">
@@ -211,7 +216,7 @@
   </div>
 </div>
 
-<script src="data.js?v=16"></script>
-<script src="app.js?v=16"></script>
+<script src="data.js?v=17"></script>
+<script src="app.js?v=17"></script>
 </body>
 </html>
