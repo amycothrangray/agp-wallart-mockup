@@ -61,6 +61,18 @@ function artRect(p) {
   }
   return [0, 0, ow, oh];
 }
+/* effective print resolution of a piece's photo (px per printed inch), using
+   the photo's original dimensions when it was downscaled for saving */
+const SOFT_DPI = 150;
+function pieceDPI(p) {
+  const ph = state.photos[p.photoId];
+  if (!ph || ph.placeholder) return null;
+  const [, , aw, ah] = artRect(p);
+  const sw = ph.ow || ph.w, sh = ph.oh || ph.h;
+  const c = coverCrop(sw, sh, aw, ah, p.focus[0], p.focus[1], p.zoom || 1);
+  return c.nw / aw;
+}
+
 function pieceLabel(p) {
   const e = sizeEntry(p.product, p.size);
   const disp = p.rotate ? p.size.split('x').reverse().join('×') : p.size.replace('x', '×');
@@ -99,7 +111,10 @@ function serialize(withPhotos) {
   };
   if (withPhotos) {
     out.photos = {};
-    for (const [id, ph] of Object.entries(state.photos)) out.photos[id] = { name: ph.name, data: downscale(ph.img) };
+    for (const [id, ph] of Object.entries(state.photos)) {
+      out.photos[id] = { name: ph.name, data: downscale(ph.img), ow: ph.ow || ph.w, oh: ph.oh || ph.h,
+        placeholder: ph.placeholder || undefined };
+    }
     if (state.bg) out.bg.data = downscale(state.bg.img, 1800);
   }
   return out;
@@ -349,6 +364,14 @@ function pieceEl(p) {
     tag.textContent = disp + '″';
     el.appendChild(tag);
   }
+  const dpi = pieceDPI(p);
+  if (dpi && dpi < SOFT_DPI) {
+    const warn = document.createElement('div');
+    warn.className = 'lowres-badge';
+    warn.textContent = '!';
+    warn.title = `This photo may print a little soft at this size and zoom (~${Math.round(dpi)} DPI). Click the piece for options.`;
+    el.appendChild(warn);
+  }
   return el;
 }
 
@@ -377,10 +400,12 @@ function addPhotoFiles(files) {
   }
 }
 
-function addPhotoData(id, name, dataUrl, cb) {
+function addPhotoData(id, name, dataUrl, cb, meta) {
   const img = new Image();
   img.onload = () => {
-    state.photos[id] = { name, url: dataUrl, w: img.naturalWidth, h: img.naturalHeight, img };
+    state.photos[id] = { name, url: dataUrl, w: img.naturalWidth, h: img.naturalHeight, img,
+      ow: (meta && meta.ow) || img.naturalWidth, oh: (meta && meta.oh) || img.naturalHeight,
+      placeholder: !!(meta && meta.placeholder) };
     cb && cb();
   };
   img.src = dataUrl;
@@ -470,7 +495,11 @@ function renderInspector() {
   const [w, h] = pieceDims(p);
   const spec = wallSpec();
   const centreAff = spec.h - (p.y + h / 2);
-  $('pInfo').innerHTML = `${w}″ × ${h}″ overall &middot; center ${Math.round(centreAff)}″ off the floor`;
+  const dpi = pieceDPI(p);
+  const lowres = dpi && dpi < SOFT_DPI
+    ? `<div class="lowres">At this size and zoom, this photo may print a little soft (~${Math.round(dpi)} DPI).
+       A smaller size, less zoom, or a higher-resolution photo will keep it crisp.</div>` : '';
+  $('pInfo').innerHTML = `${w}″ × ${h}″ overall &middot; center ${Math.round(centreAff)}″ off the floor${lowres}`;
 }
 
 function editSelected(fn) {
@@ -977,7 +1006,7 @@ function openDesign(file) {
       let left = jobs.length + (s.bg && s.bg.data ? 1 : 0);
       const done = () => { if (--left <= 0) { syncControls(); renderTray(); renderAll(); } };
       if (!left) { state.pieces = s.pieces; syncControls(); renderTray(); renderAll(); return; }
-      for (const [id, ph] of jobs) addPhotoData(id, ph.name, ph.data, done);
+      for (const [id, ph] of jobs) addPhotoData(id, ph.name, ph.data, done, { ow: ph.ow, oh: ph.oh, placeholder: ph.placeholder });
       if (s.bg && s.bg.data) {
         const img = new Image();
         img.onload = () => { state.bg = { url: img.src, img, iw: img.naturalWidth, ih: img.naturalHeight, ppi: 0 };
@@ -1010,7 +1039,9 @@ function designSummaryText() {
     const e = sizeEntry(p.product, p.size);
     sub += e.price;
     const ph = state.photos[p.photoId];
-    lines.push(`${i + 1}. ${pieceLabel(p)} — ${money(e.price)}${ph ? ` — photo: ${ph.name}` : ''}`);
+    const dpi = pieceDPI(p);
+    const soft = dpi && dpi < SOFT_DPI ? ` — NOTE: may print soft (~${Math.round(dpi)} DPI at this size/zoom)` : '';
+    lines.push(`${i + 1}. ${pieceLabel(p)} — ${money(e.price)}${ph ? ` — photo: ${ph.name}` : ''}${soft}`);
   });
   lines.push('', `Total: ${money(sub * (1 - state.coupon / 100))}${state.coupon ? ` (after ${state.coupon}% coupon)` : ''}`);
   return lines.join('\n');
@@ -1147,7 +1178,7 @@ function loadSample() {
         arrange('row');
         undoStack.pop();          // arrange() pushed; keep sample load as one undo step
       }
-    });
+    }, { placeholder: true });
   }
   $('clientName').value = state.client;
 }
@@ -1294,7 +1325,7 @@ function ensurePhotos(n, cb) {
   for (let i = 0; i < want; i++) {
     const id = 'ph' + nextId++;
     ids.push(id);
-    addPhotoData(id, 'placeholder ' + (i + 1), placeholderPhoto(i + 1, 900, 1350), () => { if (--left === 0) cb(ids); });
+    addPhotoData(id, 'placeholder ' + (i + 1), placeholderPhoto(i + 1, 900, 1350), () => { if (--left === 0) cb(ids); }, { placeholder: true });
   }
 }
 
