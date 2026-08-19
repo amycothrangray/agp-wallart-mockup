@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=14">
+<link rel="stylesheet" href="style.css?v=15">
 </head>
 <body>
 
@@ -116,6 +116,7 @@
         <label class="field">Product
           <select id="pProduct"></select>
         </label>
+        <button id="pApplyAll" class="small apply-all hidden" title="Switch every piece on the wall to this product, keeping sizes as close as possible"></button>
         <label class="field">Size
           <select id="pSize"></select>
         </label>
@@ -129,6 +130,9 @@
           <button id="pBack" class="small ghost" title="Send behind other pieces">Send back</button>
           <button id="pFront" class="small ghost" title="Bring in front">Bring front</button>
         </div>
+        <label class="field slider">Zoom in
+          <input id="pZoom" type="range" min="100" max="300" value="100" title="Enlarge the photo inside its frame">
+        </label>
         <label class="field slider">Crop &larr;&rarr;
           <input id="pFocusX" type="range" min="0" max="100" value="50">
         </label>
@@ -207,7 +211,7 @@
   </div>
 </div>
 
-<script src="data.js?v=14"></script>
-<script src="app.js?v=14"></script>
+<script src="data.js?v=15"></script>
+<script src="app.js?v=15"></script>
 </body>
 </html>

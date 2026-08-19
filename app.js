@@ -29,6 +29,18 @@ function sizesFor(product) {
     .sort((a, b) => { const [aw, ah] = parseSize(a), [bw, bh] = parseSize(b); return aw * ah - bw * bh; });
 }
 
+/* the size in a product's catalog closest to w×h (area first, aspect-aware) */
+function closestSize(product, w, h) {
+  let best = null, bestScore = Infinity;
+  for (const s of sizesFor(product)) {
+    const [cw, ch] = parseSize(s);
+    const score = Math.abs(Math.log((cw * ch) / (w * h)))
+      + 1.2 * Math.abs(Math.log((cw / ch) / (w / h)));
+    if (score < bestScore) { bestScore = score; best = s; }
+  }
+  return best;
+}
+
 /* outer bounds of a piece in inches (includes float frame) */
 function pieceDims(p) {
   let [w, h] = parseSize(p.size);
@@ -163,6 +175,7 @@ function renderAll() {
   renderPerson(spec, wh);
   renderRulers(spec, ww, wh);
   renderPieces();
+  renderTray();
   renderInspector();
   renderPricing();
   renderStatus();
@@ -307,7 +320,7 @@ function pieceEl(p) {
   const ph = state.photos[p.photoId];
   if (ph) {
     const img = document.createElement('img');
-    const c = coverCrop(ph.w, ph.h, aw, ah, p.focus[0], p.focus[1]);
+    const c = coverCrop(ph.w, ph.h, aw, ah, p.focus[0], p.focus[1], p.zoom || 1);
     const s = (aw * ppi) / c.nw;
     img.src = ph.url;
     img.style.width = ph.w * s + 'px';
@@ -339,10 +352,11 @@ function pieceEl(p) {
   return el;
 }
 
-function coverCrop(iw, ih, tw, th, fx, fy) {
+function coverCrop(iw, ih, tw, th, fx, fy, z = 1) {
   const target = tw / th, cur = iw / ih;
   let nw, nh;
   if (cur > target) { nh = ih; nw = ih * target; } else { nw = iw; nh = iw / target; }
+  nw /= z; nh /= z;                       // zoom in: show a smaller window of the photo
   const left = clamp(fx * iw - nw / 2, 0, iw - nw);
   const top = clamp(fy * ih - nh / 2, 0, ih - nh);
   return { left, top, nw, nh };
@@ -385,10 +399,13 @@ function renderTray() {
   const t = $('thumbs');
   $('shotIdeas').classList.toggle('hidden', Object.keys(state.photos).length > 0);
   t.innerHTML = '';
+  const used = new Set(state.pieces.map(p => p.photoId));
   for (const [id, ph] of Object.entries(state.photos)) {
     const d = document.createElement('div');
     d.className = 'thumb'; d.draggable = true; d.dataset.id = id;
-    d.innerHTML = `<img src="${ph.url}" alt=""><span class="tname">${ph.name}</span><button class="tdel" title="Remove from tray">×</button>`;
+    d.innerHTML = `<img src="${ph.url}" alt=""><span class="tname">${ph.name}</span>
+      ${used.has(id) ? '<span class="tused" title="In your design">✓</span>' : ''}
+      <button class="tdel" title="Remove from tray">×</button>`;
     d.addEventListener('dragstart', e => { e.dataTransfer.setData('text/agp-photo', id); e.dataTransfer.effectAllowed = 'copy'; });
     d.querySelector('.tdel').addEventListener('click', () => {
       snapshot();
@@ -444,6 +461,10 @@ function renderInspector() {
     return `<option value="${s}"${s === p.size ? ' selected' : ''}>${s.replace('x', '×')}″${e.print ? ` (${e.print.replace('x', '×')}″ print)` : ''} — ${money(e.price)}</option>`;
   }).join('');
   $('pStore').href = storeLink(p.product);
+  const others = state.pieces.filter(q => q !== p && q.product !== p.product).length;
+  $('pApplyAll').classList.toggle('hidden', !others);
+  if (others) $('pApplyAll').textContent = `Make all ${state.pieces.length} pieces ${CATALOG[p.product].name}`;
+  $('pZoom').value = Math.round((p.zoom || 1) * 100);
   $('pFocusX').value = Math.round(p.focus[0] * 100);
   $('pFocusY').value = Math.round(p.focus[1] * 100);
   const [w, h] = pieceDims(p);
@@ -863,7 +884,7 @@ async function renderMockup() {
     const ph = state.photos[p.photoId];
     const dax = px + ax * P, day = py + ay * P, daw = aw * P, dah = ah * P;
     if (ph) {
-      const cc = coverCrop(ph.w, ph.h, aw, ah, p.focus[0], p.focus[1]);
+      const cc = coverCrop(ph.w, ph.h, aw, ah, p.focus[0], p.focus[1], p.zoom || 1);
       ctx.drawImage(ph.img, cc.left, cc.top, cc.nw, cc.nh, dax, day, daw, dah);
     } else {
       ctx.fillStyle = '#ddd'; ctx.fillRect(dax, day, daw, dah);
@@ -1375,9 +1396,22 @@ $('zoomOut').addEventListener('click', () => { state.zoom = clamp(state.zoom / 1
 $('zoomFit').addEventListener('click', () => { state.zoom = 1; renderAll(); });
 
 $('pProduct').addEventListener('change', e => editSelected(p => {
+  const [w, h] = parseSize(p.size);
   p.product = e.target.value;
-  if (!CATALOG[p.product].sizes[p.size]) p.size = sizesFor(p.product)[Math.floor(sizesFor(p.product).length / 2)];
+  if (!CATALOG[p.product].sizes[p.size]) p.size = closestSize(p.product, w, h);
 }));
+$('pApplyAll').addEventListener('click', () => {
+  const p = selected(); if (!p) return;
+  snapshot();
+  for (const q of state.pieces) {
+    if (q.product === p.product) continue;
+    const [w, h] = parseSize(q.size);
+    q.product = p.product;
+    if (!CATALOG[q.product].sizes[q.size]) q.size = closestSize(q.product, w, h);
+  }
+  renderAll();
+  setStatus(`Every piece is now a ${CATALOG[p.product].name.replace(/s$/, '')} — sizes matched as closely as the collection allows.`);
+});
 $('pSize').addEventListener('change', e => editSelected(p => { p.size = e.target.value; }));
 $('pRotate').addEventListener('click', () => editSelected(p => { p.rotate = !p.rotate; }));
 $('pDup').addEventListener('click', () => {
@@ -1399,6 +1433,7 @@ $('pFront').addEventListener('click', () => {
   const p = selected(); if (!p) return;
   snapshot(); state.pieces = [...state.pieces.filter(q => q !== p), p]; renderAll();
 });
+$('pZoom').addEventListener('input', e => { const p = selected(); if (p) { p.zoom = e.target.value / 100; renderAll(); } });
 $('pFocusX').addEventListener('input', e => { const p = selected(); if (p) { p.focus[0] = e.target.value / 100; renderAll(); } });
 $('pFocusY').addEventListener('input', e => { const p = selected(); if (p) { p.focus[1] = e.target.value / 100; renderAll(); } });
 
