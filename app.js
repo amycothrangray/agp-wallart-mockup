@@ -218,7 +218,7 @@ function renderPerson(spec, wh) {
   el.style.left = (M.l + spec.w * ppi + 18) + 'px';
   el.style.top = (M.t + wh - h) + 'px';
   el.innerHTML = `<img src="${PERSON_IMG}" alt="" draggable="false"
-      style="display:block;height:${h}px;width:${w}px">
+      style="display:block;height:${h}px;width:${w}px;transform:scaleX(-1)">
     <div class="person-tag">5&#8242;5&#8243;</div>`;
 }
 
